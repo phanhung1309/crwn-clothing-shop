@@ -5,16 +5,27 @@ import HomePage from './pages/homepage/homepage.component'
 import ShopPage from './pages/shop/shop.component'
 import SignInAndSignUpPage from './pages/sign-in-and-sign-up/sign-in-and-sign-up.component'
 import Header from './components/header/header.component'
-import { auth } from './firebase/firebase.utils'
+import { auth, createUserProfileDocument } from './firebase/firebase.utils'
+import { onSnapshot } from 'firebase/firestore'
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null)
 
   useEffect(() => {
-    const unsubcribeFromAuth = auth.onAuthStateChanged((user) => {
+    const unsubcribeFromAuth = auth.onAuthStateChanged(async (userAuth) => {
       // Component Did Mount
-      setCurrentUser(user)
-      console.log(user)
+      if (userAuth) {
+        const userRef = await createUserProfileDocument(userAuth)
+
+        onSnapshot(userRef, (snapShot) => {
+          setCurrentUser({
+            id: snapShot.id,
+            photoURL: userAuth.photoURL,
+            ...snapShot.data(),
+          })
+        })
+      }
+      setCurrentUser(userAuth)
 
       // Component Will Unmount
       return () => {
