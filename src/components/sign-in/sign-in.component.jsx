@@ -3,7 +3,8 @@ import FormInput from '../form-input/form-input.component'
 import CustomButton from '../custom-button/custom-button.component'
 
 //Firebase
-import { signInWithGoogle } from '../../firebase/firebase.utils'
+import { auth, signInWithGoogle } from '../../firebase/firebase.utils'
+import { signInWithEmailAndPassword } from 'firebase/auth'
 
 import './sign-in.styles.scss'
 
@@ -19,11 +20,16 @@ const SignIn = () => {
     setEmail(e.target.value)
   }
 
-  const submitHandler = (e) => {
+  const submitHandler = async (e) => {
     e.preventDefault()
 
-    setEmail('')
-    setPassword('')
+    try {
+      await signInWithEmailAndPassword(auth, email, password)
+      setEmail('')
+      setPassword('')
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   return (
