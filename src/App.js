@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { Route, Switch } from 'react-router-dom'
+import { Route, Switch, Redirect } from 'react-router-dom'
 import { connect } from 'react-redux'
 
 import HomePage from './pages/homepage/homepage.component'
@@ -11,10 +11,9 @@ import './App.css'
 
 import { auth, createUserProfileDocument } from './firebase/firebase.utils'
 import { onSnapshot } from 'firebase/firestore'
-
 import { setCurrentUser } from './redux/user/user.action'
 
-const App = ({ setCurrentUser }) => {
+const App = ({ currentUser, setCurrentUser }) => {
   useEffect(() => {
     const unsubcribeFromAuth = auth.onAuthStateChanged(async (userAuth) => {
       // Component Did Mount
@@ -42,7 +41,15 @@ const App = ({ setCurrentUser }) => {
     <div>
       <Header />
       <Switch>
-        <Route path='/signin' component={SignInAndSignUpPage} />
+        <Route
+          path='/signin'
+          render={() => {
+            if (currentUser) return <Redirect to='/' />
+            else {
+              return <SignInAndSignUpPage />
+            }
+          }}
+        />
         <Route path='/shop' component={ShopPage} />
         <Route path='/' component={HomePage} />
       </Switch>
@@ -50,8 +57,12 @@ const App = ({ setCurrentUser }) => {
   )
 }
 
+const mapStateToProps = ({ user }) => ({
+  currentUser: user.currentUser,
+})
+
 const mapDispatchToProps = (dispatch) => ({
   setCurrentUser: (user) => dispatch(setCurrentUser(user)),
 })
 
-export default connect(null, mapDispatchToProps)(App)
+export default connect(mapStateToProps, mapDispatchToProps)(App)
